@@ -1,0 +1,27 @@
+parameters:
+  paths:
+    - ./src
+  exclude_files:
+    - '#.*\/src\/.*\/Infrastructure\/Adapter\/.*#'
+  layers:
+    - name: Shared
+      collectors:
+        - type: directory
+          regex: /src/Shared/.*
+
+    - name: CurrencyExchange
+      collectors:
+        - type: directory
+          regex: /src/CurrencyExchange/.*
+
+#    - name: Profiles
+#      collectors:
+#        - type: directory
+#          regex: /src/Profiles/.*
+
+  ruleset:
+    CurrencyExchange:
+      - Shared
+#    Profiles:
+#      - Shared
+#      - Users

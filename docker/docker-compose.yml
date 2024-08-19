@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  php-fpm:
+    container_name: php-fpm
+    build:
+      context: ./../
+      dockerfile: ./docker/php-fpm/Dockerfile
+      args:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - INSTALL_XDEBUG=${INSTALL_XDEBUG}
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+    volumes:
+      - ./../:/var/www/:cached
+    depends_on:
+      - postgres
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+    ports:
+      - ${NGINX_HOST_HTTP_PORT}:80
+    volumes:
+      - ..:/var/www:rw
+    depends_on:
+      - php-fpm
+
+  postgres:
+    container_name: postgres
+    build:
+      context: ./postgres
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data:rw
+
+  monerod:
+    image: lchaia/monerod:latest
+    container_name: monerod
+    build:
+      context: cryptocurrency/Monero
+    volumes:
+      - ../var/cryptocurrency/monero/:/home/monero/.bitmonero
+    ports:
+      - "18080:18080"
+      - "18089:18089"
+    command:
+      - "--non-interactive"
+      - "--restricted-rpc"
+      - "--rpc-bind-ip=0.0.0.0"
+      - "--rpc-bind-port=18089"
+      - "--confirm-external-bind"
+      - "--max-concurrency=4"
+      - "--public-node"
+      - "--limit-rate-up=1024"
+      - "--limit-rate-down=2048"
+
+volumes:
+  db_data:
